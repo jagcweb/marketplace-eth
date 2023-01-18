@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import useSWR from "swr";
 
-const NETWORK = {
+const NETWORKS = {
   1: "Ethereum Mainnet",
   3: "Ropsten Testnet",
   4: "Rinkeby Testnet",
@@ -12,13 +12,14 @@ const NETWORK = {
   1337: "Ganache",
 };
 
+const targetNetwork = NETWORKS[process.env.NEXT_PUBLIC_TARGET_CHAIN_ID]
 
 export const handler = (web3, provider) => () => {
-  const { data, mutate, ...rest } = useSWR(
+  const { data,error, mutate, ...rest } = useSWR(
     () => (web3 ? "web3/network" : null),
     async () => {
       const chainId = await web3.eth.getChainId();
-      return NETWORK[chainId] || "Error network";
+      return NETWORKS[chainId];
     }
   );
 
@@ -29,6 +30,9 @@ export const handler = (web3, provider) => () => {
   return {
     network: {
       data,
+      target: targetNetwork,
+      isSupported: data === targetNetwork,
+      hasFinishedFirstFetch: data || error,
       mutate,
       ...rest,
     },
